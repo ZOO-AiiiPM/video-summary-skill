@@ -1,12 +1,12 @@
 # Video Summary Skill
 
-一个用于 [Claude Code](https://claude.ai/download) 的视频总结 Skill。支持 YouTube 和 B站视频，自动提取字幕并生成 AI 深度解读。
+一个用于 [Claude Code](https://claude.ai/download) 的视频总结 Skill。支持 YouTube 和 B站视频，自动提取字幕并由 Claude Code 直接生成深度解读。
 
 ## 功能特点
 
 - 支持 YouTube 和 B站视频
 - 自动提取视频字幕（支持多语言）
-- AI 深度解读，生成结构化的总结
+- Claude Code 直接深度解读，无需额外 API 调用
 - 跨平台支持（macOS / Linux / Windows）
 
 ## 系统要求
@@ -49,31 +49,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 - 交互式创建配置文件
 - 安装 Claude Code Skill
 
-### 3. 配置 API Key
-
-**macOS / Linux:**
-
-```bash
-echo 'export ANTHROPIC_API_KEY=sk-xxx' >> ~/.zshrc
-source ~/.zshrc
-
-# 如果使用代理服务（可选）
-echo 'export ANTHROPIC_BASE_URL=https://your-proxy.com' >> ~/.zshrc
-```
-
-**Windows (PowerShell):**
-
-```powershell
-# 设置用户环境变量（永久生效）
-[Environment]::SetEnvironmentVariable("ANTHROPIC_API_KEY", "sk-xxx", "User")
-
-# 如果使用代理服务（可选）
-[Environment]::SetEnvironmentVariable("ANTHROPIC_BASE_URL", "https://your-proxy.com", "User")
-
-# 重启终端使环境变量生效
-```
-
-### 4. 使用
+### 3. 使用
 
 在 Claude Code 中输入：
 
@@ -86,6 +62,8 @@ echo 'export ANTHROPIC_BASE_URL=https://your-proxy.com' >> ~/.zshrc
 ```
 /video-summary https://www.bilibili.com/video/BVxxx
 ```
+
+Claude Code 会自动提取字幕并生成深度解读。
 
 ## 配置说明
 
@@ -108,13 +86,6 @@ B站视频字幕需要登录才能获取。你可以使用浏览器扩展导出 
 1. 安装 [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) 扩展
 2. 登录 B站
 3. 导出 cookies.txt 到配置文件指定的路径
-
-## 环境变量
-
-| 变量名 | 必需 | 说明 |
-|--------|------|------|
-| `ANTHROPIC_API_KEY` | ✅ | Anthropic API 密钥 |
-| `ANTHROPIC_BASE_URL` | ❌ | 自定义 API 地址（用于代理服务） |
 
 ## 目录结构
 
@@ -156,12 +127,6 @@ B站视频字幕需要登录才能获取。你可以使用浏览器扩展导出 
    - Windows: `pip install -U yt-dlp`
 2. B站视频需要配置 cookies
 3. 某些视频可能没有字幕
-
-### Q: AI 总结失败？
-
-1. 检查 API Key 是否正确配置
-2. 检查网络连接
-3. 如果使用代理，确保 `ANTHROPIC_BASE_URL` 配置正确
 
 ### Q: Windows 上 PowerShell 无法执行脚本？
 
