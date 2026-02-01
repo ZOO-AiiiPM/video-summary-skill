@@ -1,0 +1,12 @@
+# Video Summary Skill 配置文件示例
+# 复制到 ~/.video-summary/config.yaml 并根据需要修改
+
+# 输出目录（字幕、总结和临时文件）
+# 默认: ~/Documents/video-summaries
+output_dir: ~/Documents/video-summaries
+
+# B站 cookies 文件路径（可选）
+# B站视频需要登录才能获取字幕
+# 可以使用浏览器扩展导出 cookies.txt
+# 示例: ~/.video-summary/cookies.txt
+cookies_file: ""

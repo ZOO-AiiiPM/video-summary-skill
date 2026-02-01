@@ -1,0 +1,3 @@
+# Video Summary Skill Dependencies
+anthropic>=0.18.0
+pyyaml>=6.0

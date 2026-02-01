@@ -1,0 +1,76 @@
+---
+name: video-summary
+description: 总结单个 YouTube 或 B站视频。提取字幕并生成 AI 深度解读。当用户提供视频链接并要求总结时使用此 skill。
+argument-hint: <视频链接>
+user-invocable: true
+allowed-tools: Bash, Read, Glob, Write
+---
+
+# 视频总结 Skill
+
+总结单个 YouTube 或 B站视频，生成深度解读。
+
+## 用户输入
+
+视频链接：$ARGUMENTS
+
+## 配置文件
+
+配置文件位置：`~/.video-summary/config.yaml`
+
+## 执行步骤
+
+请按以下步骤执行视频总结：
+
+### 1. 验证输入
+
+检查用户是否提供了有效的视频链接。支持的格式：
+- YouTube: `https://www.youtube.com/watch?v=xxx` 或 `https://youtu.be/xxx`
+- B站: `https://www.bilibili.com/video/BVxxx` 或 `https://b23.tv/xxx`
+
+如果没有提供链接，请提示用户输入。
+
+### 2. 提取字幕
+
+使用以下命令提取视频字幕：
+
+```bash
+cd "{{TOOLS_DIR}}" && python extract_single.py "视频链接"
+```
+
+等待命令完成，检查是否成功提取字幕。
+
+### 3. 查找字幕文件
+
+字幕会保存在配置的 `output_dir` 目录下的 `subtitles/` 子目录。
+
+默认位置：`~/Documents/video-summaries/subtitles/`
+
+使用 Glob 工具查找最新的 .txt 文件。
+
+### 4. AI 总结
+
+对字幕文件进行 AI 深度解读：
+
+```bash
+cd "{{TOOLS_DIR}}" && python summarize_single.py "字幕文件路径"
+```
+
+### 5. 展示结果
+
+1. 总结文件会自动保存到 `output_dir/summaries/` 目录
+2. 读取生成的总结文件
+3. 向用户展示完整的深度解读内容
+4. 告知用户文件已保存的位置
+
+## 错误处理
+
+- 如果字幕提取失败，提示用户该视频可能没有字幕
+- 如果是 B站视频且提取失败，提示可能需要配置 cookies.txt
+- 如果 AI 总结失败，检查 API key 是否配置正确
+
+## 环境要求
+
+确保以下环境变量已配置：
+- `ANTHROPIC_API_KEY`
+- `ANTHROPIC_BASE_URL`（可选，用于代理服务）
