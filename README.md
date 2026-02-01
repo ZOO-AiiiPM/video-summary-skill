@@ -51,13 +51,13 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ### 3. 使用
 
-在 Claude Code 中输入：
+直接告诉 Claude Code 你想总结的视频：
 
 ```
-/video-summary https://youtube.com/watch?v=xxx
+总结这个视频 https://youtube.com/watch?v=xxx
 ```
 
-或
+或使用 skill 命令：
 
 ```
 /video-summary https://www.bilibili.com/video/BVxxx
@@ -73,7 +73,11 @@ Claude Code 会自动提取字幕并生成深度解读。
 
 ```yaml
 # 输出目录（字幕、总结和临时文件）
+# 支持中文路径，如: ~/Documents/视频总结
 output_dir: ~/Documents/video-summaries
+
+# Obsidian 收件箱目录（可选，设置后总结会保存到这里）
+obsidian_dir: ""
 
 # B站 cookies 文件路径（可选）
 cookies_file: ~/.video-summary/cookies.txt
