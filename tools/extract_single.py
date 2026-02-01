@@ -9,9 +9,16 @@ import os
 import re
 import sys
 import time
+import io
+import shutil
 from pathlib import Path
 
 from config_loader import get_cookies_file, get_subtitles_dir, get_temp_dir
+
+# Windows 编码修复：设置 stdout/stderr 为 UTF-8
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 
 def detect_platform(url: str) -> str:
@@ -21,14 +28,23 @@ def detect_platform(url: str) -> str:
     return "youtube"
 
 
+def get_ytdlp_cmd() -> list:
+    """获取 yt-dlp 命令，支持 PATH 查找和 python -m 回退"""
+    ytdlp = shutil.which("yt-dlp")
+    if ytdlp:
+        return [ytdlp]
+    # 回退到 python -m 方式
+    return [sys.executable, "-m", "yt_dlp"]
+
+
 def get_video_info(url: str, cookies_file: str = None) -> dict:
     """获取视频标题和发布日期"""
-    cmd = ["yt-dlp", "--js-runtimes", "node", "--print", "%(title)s\n%(upload_date)s\n%(uploader)s"]
+    cmd = get_ytdlp_cmd() + ["--js-runtimes", "node", "--print", "%(title)s\n%(upload_date)s\n%(uploader)s"]
     if cookies_file:
         cmd.extend(["--cookies", cookies_file])
     cmd.append(url)
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='replace')
     lines = result.stdout.strip().split("\n")
     title = lines[0] if len(lines) > 0 else ""
     upload_date = lines[1] if len(lines) > 1 else ""
@@ -48,13 +64,13 @@ def download_subtitle(url: str, output_dir: str, platform: str, cookies_file: st
     # 根据平台设置语言优先级
     if platform == "bilibili":
         # B站：先尝试中文字幕，再尝试 AI 英文字幕
-        lang_options = ["zh-Hans,zh,ai-zh", "ai-en"]
+        lang_options = ["zh-Hans,zh,zh-CN,ai-zh", "ai-en"]
     else:
-        lang_options = ["zh-Hans,zh-Hant,zh,en", "en"]
+        # YouTube：扩展语言代码，覆盖更多变体
+        lang_options = ["zh-Hans,zh-Hant,zh,zh-CN,zh-TW,en", "en"]
 
     for langs in lang_options:
-        cmd = [
-            "yt-dlp",
+        cmd = get_ytdlp_cmd() + [
             "--js-runtimes", "node",
             "--write-auto-sub",
             "--write-sub",
@@ -66,14 +82,23 @@ def download_subtitle(url: str, output_dir: str, platform: str, cookies_file: st
             cmd.extend(["--cookies", cookies_file])
         cmd.append(url)
 
-        result = subprocess.run(cmd, capture_output=True, text=True, cwd=output_dir)
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=output_dir, encoding='utf-8', errors='replace')
 
-        # 查找生成的字幕文件
-        priority = ["zh-Hans", "zh-Hant", "zh", "ai-zh", "en", "ai-en"]
+        # 查找生成的字幕文件 - 精确匹配优先级
+        priority = ["zh-Hans", "zh-Hant", "zh", "zh-CN", "zh-TW", "ai-zh", "en", "ai-en"]
         for lang in priority:
             for ext in ["vtt", "srt"]:
                 for f in Path(output_dir).glob(f"*.{lang}.{ext}"):
                     return str(f)
+
+        # 模糊匹配（处理 zh-Hans-zh-CN 这种情况）
+        for ext in ["vtt", "srt"]:
+            for f in Path(output_dir).glob(f"*zh*.{ext}"):
+                return str(f)
+            for f in Path(output_dir).glob(f"*.en.{ext}"):
+                return str(f)
+
+        # 最后兜底：任意字幕文件
         for ext in ["vtt", "srt"]:
             for f in Path(output_dir).glob(f"*.{ext}"):
                 return str(f)
