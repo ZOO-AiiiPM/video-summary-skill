@@ -37,6 +37,21 @@ def get_ytdlp_cmd() -> list:
     return [sys.executable, "-m", "yt_dlp"]
 
 
+def check_environment():
+    """检查运行环境，提前报告缺失依赖"""
+    cmd = get_ytdlp_cmd()
+    try:
+        result = subprocess.run(cmd + ["--version"], capture_output=True, encoding='utf-8', errors='replace')
+        if result.returncode != 0:
+            print("❌ yt-dlp 无法正常运行")
+            print(f"   错误信息: {result.stderr.strip()}")
+            sys.exit(1)
+    except FileNotFoundError:
+        print("❌ yt-dlp 未安装")
+        print("   请运行: pip install yt-dlp")
+        sys.exit(1)
+
+
 def get_video_info(url: str, cookies_file: str = None) -> dict:
     """获取视频标题和发布日期"""
     cmd = get_ytdlp_cmd() + ["--js-runtimes", "node", "--print", "%(title)s\n%(upload_date)s\n%(uploader)s"]
@@ -142,6 +157,10 @@ def main():
         sys.exit(1)
 
     url = sys.argv[1]
+
+    # 检查环境
+    check_environment()
+
     platform = detect_platform(url)
     platform_name = "B站" if platform == "bilibili" else "YouTube"
 
