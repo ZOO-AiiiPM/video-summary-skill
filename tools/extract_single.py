@@ -11,6 +11,12 @@ import sys
 import time
 from pathlib import Path
 
+# Windows 环境修复：强制 UTF-8 编码，将 Python Scripts 目录加入 PATH
+os.environ["PYTHONUTF8"] = "1"
+_scripts_dir = os.path.join(os.path.dirname(sys.executable), "Scripts")
+if os.path.isdir(_scripts_dir) and _scripts_dir not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = _scripts_dir + os.pathsep + os.environ["PATH"]
+
 from config_loader import get_cookies_file, get_subtitles_dir, get_temp_dir
 
 
@@ -28,7 +34,7 @@ def get_video_info(url: str, cookies_file: str = None) -> dict:
         cmd.extend(["--cookies", cookies_file])
     cmd.append(url)
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace")
     lines = result.stdout.strip().split("\n")
     title = lines[0] if len(lines) > 0 else ""
     upload_date = lines[1] if len(lines) > 1 else ""
@@ -48,9 +54,9 @@ def download_subtitle(url: str, output_dir: str, platform: str, cookies_file: st
     # 根据平台设置语言优先级
     if platform == "bilibili":
         # B站：先尝试中文字幕，再尝试 AI 英文字幕
-        lang_options = ["zh-Hans,zh,ai-zh", "ai-en"]
+        lang_options = ["zh-CN,zh-Hans,zh-Hant,zh,ai-zh", "ai-en"]
     else:
-        lang_options = ["zh-Hans,zh-Hant,zh,en", "en"]
+        lang_options = ["zh-CN,zh-Hans,zh-Hant,zh,en", "en,en-US"]
 
     for langs in lang_options:
         cmd = [
@@ -66,10 +72,10 @@ def download_subtitle(url: str, output_dir: str, platform: str, cookies_file: st
             cmd.extend(["--cookies", cookies_file])
         cmd.append(url)
 
-        result = subprocess.run(cmd, capture_output=True, text=True, cwd=output_dir)
+        result = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", cwd=output_dir)
 
         # 查找生成的字幕文件
-        priority = ["zh-Hans", "zh-Hant", "zh", "ai-zh", "en", "ai-en"]
+        priority = ["zh-CN", "zh-Hans", "zh-Hans-zh-CN", "zh-Hant", "zh-Hant-zh-CN", "zh", "ai-zh", "en", "en-zh-CN", "en-US", "ai-en"]
         for lang in priority:
             for ext in ["vtt", "srt"]:
                 for f in Path(output_dir).glob(f"*.{lang}.{ext}"):
@@ -110,6 +116,21 @@ def parse_subtitle(subtitle_path: str) -> str:
     return " ".join(text_lines)
 
 
+def check_environment():
+    """检查运行环境，提前报告缺失依赖"""
+    errors = []
+    try:
+        result = subprocess.run(["yt-dlp", "--version"], capture_output=True, encoding="utf-8", errors="replace")
+        if result.returncode != 0:
+            errors.append("yt-dlp 无法正常运行")
+    except FileNotFoundError:
+        errors.append("yt-dlp 未安装或不在 PATH 中。请运行: pip install yt-dlp")
+    if errors:
+        for e in errors:
+            print(f"❌ {e}")
+        sys.exit(1)
+
+
 def main():
     if len(sys.argv) < 2:
         print("用法: python extract_single.py <视频链接>")
@@ -117,6 +138,7 @@ def main():
         sys.exit(1)
 
     url = sys.argv[1]
+    check_environment()
     platform = detect_platform(url)
     platform_name = "B站" if platform == "bilibili" else "YouTube"
 

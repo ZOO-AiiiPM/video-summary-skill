@@ -35,7 +35,7 @@ allowed-tools: Bash, Read, Glob, Write
 使用以下命令提取视频字幕：
 
 ```bash
-cd "{{TOOLS_DIR}}" && python extract_single.py "视频链接"
+set PYTHONUTF8=1 && cd "{{TOOLS_DIR}}" && py extract_single.py "视频链接"
 ```
 
 等待命令完成，检查是否成功提取字幕。
@@ -53,7 +53,7 @@ cd "{{TOOLS_DIR}}" && python extract_single.py "视频链接"
 对字幕文件进行 AI 深度解读：
 
 ```bash
-cd "{{TOOLS_DIR}}" && python summarize_single.py "字幕文件路径"
+set PYTHONUTF8=1 && cd "{{TOOLS_DIR}}" && py summarize_single.py "字幕文件路径"
 ```
 
 ### 5. 展示结果
@@ -71,6 +71,11 @@ cd "{{TOOLS_DIR}}" && python summarize_single.py "字幕文件路径"
 
 ## 环境要求
 
-确保以下环境变量已配置：
-- `ANTHROPIC_API_KEY`
-- `ANTHROPIC_BASE_URL`（可选，用于代理服务）
+确保以下至少一种方式配置了 API Key：
+- 环境变量 `ANTHROPIC_API_KEY`（优先）
+- 配置文件 `~/.video-summary/config.yaml` 中的 `anthropic_api_key` 字段
+
+可选配置：
+- `ANTHROPIC_BASE_URL` 环境变量或配置文件中的 `anthropic_base_url`（用于代理服务）
+
+注意：Windows 环境下脚本会自动设置 UTF-8 编码和 PATH，无需手动配置。

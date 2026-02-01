@@ -10,3 +10,9 @@ output_dir: ~/Documents/video-summaries
 # 可以使用浏览器扩展导出 cookies.txt
 # 示例: ~/.video-summary/cookies.txt
 cookies_file: ""
+
+# Anthropic API Key（可选，也可通过环境变量 ANTHROPIC_API_KEY 设置，环境变量优先）
+anthropic_api_key: ""
+
+# Anthropic API Base URL（可选，用于代理服务）
+anthropic_base_url: ""

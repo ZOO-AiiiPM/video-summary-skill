@@ -11,6 +11,8 @@ import yaml
 DEFAULT_CONFIG = {
     "output_dir": "~/Documents/video-summaries",
     "cookies_file": "",
+    "anthropic_api_key": "",
+    "anthropic_base_url": "",
 }
 
 CONFIG_DIR = Path.home() / ".video-summary"
@@ -37,6 +39,26 @@ def load_config() -> dict:
             print(f"⚠️  配置文件读取失败: {e}，使用默认配置")
 
     return config
+
+
+def get_anthropic_api_key() -> str | None:
+    """获取 API key，优先使用环境变量，其次使用配置文件"""
+    import os
+    key = os.getenv("ANTHROPIC_API_KEY")
+    if key:
+        return key
+    config = load_config()
+    return config.get("anthropic_api_key") or None
+
+
+def get_anthropic_base_url() -> str | None:
+    """获取 API base URL，优先使用环境变量，其次使用配置文件"""
+    import os
+    url = os.getenv("ANTHROPIC_BASE_URL")
+    if url:
+        return url
+    config = load_config()
+    return config.get("anthropic_base_url") or None
 
 
 def get_output_dir() -> Path:
@@ -103,6 +125,12 @@ output_dir: ~/Documents/video-summaries
 # B站 cookies 文件路径（可选，用于下载需要登录的视频字幕）
 # 示例: ~/.video-summary/cookies.txt
 cookies_file: ""
+
+# Anthropic API Key（可选，也可通过环境变量 ANTHROPIC_API_KEY 设置）
+anthropic_api_key: ""
+
+# Anthropic API Base URL（可选，用于代理服务）
+anthropic_base_url: ""
 """
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             f.write(default_content)

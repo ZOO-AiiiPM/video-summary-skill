@@ -13,18 +13,21 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+# Windows 环境修复：强制 UTF-8 编码
+os.environ["PYTHONUTF8"] = "1"
+
 import anthropic
 
-from config_loader import get_summaries_dir
+from config_loader import get_anthropic_api_key, get_anthropic_base_url, get_summaries_dir
 
 
 def get_client() -> anthropic.Anthropic:
-    """获取 API 客户端"""
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    base_url = os.getenv("ANTHROPIC_BASE_URL")
+    """获取 API 客户端（优先环境变量，其次配置文件）"""
+    api_key = get_anthropic_api_key()
+    base_url = get_anthropic_base_url()
 
     if not api_key:
-        print("❌ 请设置 ANTHROPIC_API_KEY 环境变量")
+        print("❌ 请设置 ANTHROPIC_API_KEY 环境变量，或在 ~/.video-summary/config.yaml 中配置 anthropic_api_key")
         sys.exit(1)
 
     kwargs = {"api_key": api_key}
