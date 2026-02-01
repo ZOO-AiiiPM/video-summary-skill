@@ -20,7 +20,7 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/zhouwenxi008520/video-summary-skill.git
+git clone https://github.com/ZOO-AiiiPM/video-summary-skill.git
 cd video-summary-skill
 ```
 
